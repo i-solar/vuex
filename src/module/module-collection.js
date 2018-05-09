@@ -2,6 +2,10 @@ import Module from './module'
 import { assert, forEachValue } from '../util'
 
 export default class ModuleCollection {
+  /**
+   * 
+   * @param {Object} rawRootModule 其实就是传进来的 options，为什么叫这个名字呢？肯定有原因
+   */
   constructor (rawRootModule) {
     // register root module (Vuex.Store options)
     this.register([], rawRootModule, false)
@@ -25,6 +29,12 @@ export default class ModuleCollection {
     update([], this.root, rawRootModule)
   }
 
+  /**
+   * 
+   * @param {*} path 
+   * @param {*} rawModule 
+   * @param {*} runtime 
+   */
   register (path, rawModule, runtime = true) {
     if (process.env.NODE_ENV !== 'production') {
       assertRawModule(path, rawModule)

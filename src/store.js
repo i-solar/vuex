@@ -6,19 +6,28 @@ import { forEachValue, isObject, isPromise, assert } from './util'
 let Vue // bind on install
 
 export class Store {
+  /**
+   * 构造函数
+   * @param {Object} options new Vuex.Store(options) 传进来的对象
+   * @param {Array} options.plugins ？
+   * @param {boolean} options.strict ？
+   */
   constructor (options = {}) {
     // Auto install if it is not done yet and `window` has `Vue`.
     // To allow users to avoid auto-installation in some cases,
     // this code should be placed here. See #731
+    // 根据条件自动混入 Vuex 到 Vue 中
     if (!Vue && typeof window !== 'undefined' && window.Vue) {
       install(window.Vue)
     }
 
+    // 运行环境不是生产环境则进行断言
     if (process.env.NODE_ENV !== 'production') {
       assert(Vue, `must call Vue.use(Vuex) before creating a store instance.`)
       assert(typeof Promise !== 'undefined', `vuex requires a Promise polyfill in this browser.`)
       assert(this instanceof Store, `store must be called with the new operator.`)
     }
+
 
     const {
       plugins = [],
@@ -29,6 +38,8 @@ export class Store {
     this._committing = false
     this._actions = Object.create(null)
     this._actionSubscribers = []
+
+    // 私有的 mutations
     this._mutations = Object.create(null)
     this._wrappedGetters = Object.create(null)
     this._modules = new ModuleCollection(options)
@@ -86,6 +97,7 @@ export class Store {
       options
     } = unifyObjectStyle(_type, _payload, _options)
 
+    // 
     const mutation = { type, payload }
     const entry = this._mutations[type]
     if (!entry) {
@@ -243,6 +255,9 @@ function resetStoreVM (store, state, hot) {
   // some funky global mixins
   const silent = Vue.config.silent
   Vue.config.silent = true
+
+  // 在 store 实例上挂载了一个 _vm （Vue 实例）
+  // state 放到 data 里面了
   store._vm = new Vue({
     data: {
       $$state: state
@@ -466,7 +481,14 @@ function unifyObjectStyle (type, payload, options) {
   return { type, payload, options }
 }
 
+/**
+ * 
+ * @param {Vue} _Vue 传进来的 Vue 实例
+ */
 export function install (_Vue) {
+  // Vue 是该模块的全局变量，用来记录是否已经 install 过了
+  // 第一次 install 的时候，Vue 为空
+  // 后面 install 的时候，Vue 就有值了
   if (Vue && _Vue === Vue) {
     if (process.env.NODE_ENV !== 'production') {
       console.error(
@@ -476,5 +498,7 @@ export function install (_Vue) {
     return
   }
   Vue = _Vue
+
+  // 混入到 Vue 的全局配置中
   applyMixin(Vue)
 }
